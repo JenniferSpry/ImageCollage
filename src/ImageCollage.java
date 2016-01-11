@@ -3,9 +3,10 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -18,6 +19,7 @@ import javax.swing.JPanel;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
@@ -27,8 +29,7 @@ import org.opencv.imgproc.Imgproc;
 
 
 public class ImageCollage extends JFrame{
-	
-	
+		
 	private static int[] FORMATS = {9, 10, 11, 13, 15};
 	private static float INCH = 2.54f;
 	private static int RESOLUTION = 250;
@@ -42,17 +43,22 @@ public class ImageCollage extends JFrame{
 	private JLabel label;
 	private JButton button;
 	private JFileChooser fileChooser;
+	private JLabel picLabel;
 	
 	public ImageCollage(){
 		super("Create collage");
 		setLayout(new BorderLayout());
 		
-		JPanel containeroben = new JPanel();
-		containeroben.setLayout(new FlowLayout());
+		JPanel containerTop = new JPanel();
+		JPanel containerBottom = new JPanel();
+		picLabel = new JLabel();
+		containerBottom.add(picLabel);
+		containerTop.setLayout(new FlowLayout());
 		JPanel panel1 = new JPanel();
 		
-		containeroben.add(panel1);
-		add(containeroben, BorderLayout.NORTH);
+		containerTop.add(panel1);
+		add(containerTop, BorderLayout.NORTH);
+		add(containerBottom, BorderLayout.CENTER);
 		
 		label = new JLabel("Choose a folder");
 		button = new JButton("search");
@@ -69,6 +75,7 @@ public class ImageCollage extends JFrame{
 		});
 			
 		pack();
+		setSize(500,500);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
 	}	
@@ -77,50 +84,64 @@ public class ImageCollage extends JFrame{
 		int result = fileChooser.showOpenDialog(this);
 		if (result == JFileChooser.APPROVE_OPTION){
 			File dir = fileChooser.getSelectedFile();
-			createCollages(dir);
+			try {
+				createCollages(dir);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}	
 	
-	private void createCollages(File dir) {
+	private void createCollages(File dir) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		Mat result = new Mat(300, 300, CvType.CV_8UC1, new Scalar(0, 0, 0));
+		Mat result = new Mat(300, 300, CvType.CV_8UC3, new Scalar(0, 0, 0));
 		File[] liste = dir.listFiles();
 		
 		int x = 0;
 		int y = 0;
 		
 		for (int i = 0; i < chosenCollageRows * chosenCollageRows; i++){
-			try {
-				System.out.println("inserting image: " + liste[i].getName());
-				BufferedImage img = ImageIO.read(liste[i]);
-				Mat tmp1 = bufferedImageToMat(img);
-				Imgproc.resize(tmp1, tmp1, new Size(100,100));
-				Rect roi = new Rect (new Point(x, y), tmp1.size()); //region of interest
-				Mat destinationROI = result.submat(roi);
-				tmp1.copyTo(destinationROI);
-				x += 100;
-				if (x >= 300) {
-					x = 0;
-					y += 100;
-				}
-				if (y >= 300) {
-					// save image
-					Imgcodecs.imwrite(dir.getAbsolutePath() + "/frunobulax.jpg", result);
-					System.out.println("saved image");
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			System.out.println("inserting image: " + liste[i].getName());
+			Mat tmp1 = Imgcodecs.imread(liste[i].getAbsolutePath());
+			Imgproc.resize(tmp1, tmp1, new Size(100,100));
+			Mat destinationROI = new Mat(result, new Rect (new Point(x, y), tmp1.size()));
+			tmp1.copyTo(destinationROI);
+			x += 100;
+			if (x >= 300) {
+				x = 0;
+				y += 100;
+			}
+			if (y >= 300) {
+				// save image
+				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage.jpg", result);
+				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage.jpg");
 			}
 		}
+		showImage(mat2Img(result));
+//		this.dispose();
 	}
 	
-	private Mat bufferedImageToMat(BufferedImage img) {
-		byte[] pixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-		Mat result = new Mat(img.getWidth(), img.getHeight(), CvType.CV_8UC1, new Scalar(0));
-		result.put(0, 0, pixels);
-		return result;
+	private void showImage(BufferedImage img) {
+		picLabel.setIcon(new ImageIcon(img.getScaledInstance(500, 500, 0)));
+		pack();
+		picLabel.repaint();
 	}
+	
+	public static BufferedImage mat2Img(Mat inmat){
+		MatOfByte bytemat = new MatOfByte();
+		Imgcodecs.imencode(".jpg", inmat, bytemat);
+		byte[] bytes = bytemat.toArray();
+		InputStream in = new ByteArrayInputStream(bytes);
+		BufferedImage img = new BufferedImage(1, 1, 1);
+		try {
+			img = ImageIO.read(in);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return img;
+    }
 
 	public static void main(String[] args){
 		new ImageCollage();
