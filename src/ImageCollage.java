@@ -30,14 +30,17 @@ import org.opencv.imgproc.Imgproc;
 
 public class ImageCollage extends JFrame{
 		
-	private static int[] FORMATS = {9, 10, 11, 13, 15};
+	private static int[] HEIGHTS = {9, 10, 11, 13, 15};
 	private static float INCH = 2.54f;
-	private static int RESOLUTION = 250;
+	private static int RESOLUTION = 250; //ppi
 	private static int[] COLLAGE_ROWS = {2, 3, 4};
+	private static int FORMAT_WIDTH = 16;
+	private static int FORMAT_HEIGHT = 9;
+	// resulting format 16 to 9
 	
-	// width in px = 13 / 2,54 * 200
+	// width in px = 13 / 2,54 * 250
 	
-	private int chosenFormat = 13;
+	private int chosenHeight = 13;
 	private int chosenCollageRows = 3;
 	
 	private JLabel label;
@@ -95,24 +98,33 @@ public class ImageCollage extends JFrame{
 	
 	private void createCollages(File dir) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		Mat result = new Mat(300, 300, CvType.CV_8UC3, new Scalar(0, 0, 0));
+		
+		double resultHeight = (chosenHeight / INCH) * RESOLUTION;
+		resultHeight = (Math.ceil(resultHeight / chosenCollageRows)) * chosenCollageRows;
+		double resultWidth = (resultHeight / FORMAT_HEIGHT) * FORMAT_WIDTH; 
+		resultWidth = (Math.ceil(resultWidth / chosenCollageRows)) * chosenCollageRows;
+		Mat result = new Mat((int) resultHeight, (int) resultWidth, CvType.CV_8UC3, new Scalar(0, 0, 0));
+		
 		File[] liste = dir.listFiles();
 		
 		int x = 0;
 		int y = 0;
+		int partWidth = (int) (resultWidth / chosenCollageRows);
+		int partHeight = (int) (resultHeight / chosenCollageRows);
 		
 		for (int i = 0; i < chosenCollageRows * chosenCollageRows; i++){
 			System.out.println("inserting image: " + liste[i].getName());
+			System.out.println("at: " + x + " / " + y);
 			Mat tmp1 = Imgcodecs.imread(liste[i].getAbsolutePath());
-			Imgproc.resize(tmp1, tmp1, new Size(100,100));
+			Imgproc.resize(tmp1, tmp1, new Size(partWidth, partHeight));
 			Mat destinationROI = new Mat(result, new Rect (new Point(x, y), tmp1.size()));
 			tmp1.copyTo(destinationROI);
-			x += 100;
-			if (x >= 300) {
+			x += partWidth;
+			if (x >= resultWidth) {
 				x = 0;
-				y += 100;
+				y += partHeight;
 			}
-			if (y >= 300) {
+			if (y >= resultHeight) {
 				// save image
 				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage.jpg", result);
 				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage.jpg");
