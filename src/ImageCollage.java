@@ -34,14 +34,15 @@ public class ImageCollage extends JFrame{
 	private static float INCH = 2.54f;
 	private static int RESOLUTION = 250; //ppi
 	private static int[] COLLAGE_ROWS = {2, 3, 4};
-	private static int FORMAT_WIDTH = 16;
-	private static int FORMAT_HEIGHT = 9;
+	private static float FORMAT_WIDTH = 16;
+	private static float FORMAT_HEIGHT = 9;
 	// resulting format 16 to 9
 	
 	// width in px = 13 / 2,54 * 250
 	
 	private int chosenHeight = 13;
 	private int chosenCollageRows = 3;
+	private float chosenFormat = FORMAT_WIDTH / FORMAT_HEIGHT;
 	
 	private JLabel label;
 	private JButton button;
@@ -111,12 +112,33 @@ public class ImageCollage extends JFrame{
 		int y = 0;
 		int partWidth = (int) (resultWidth / chosenCollageRows);
 		int partHeight = (int) (resultHeight / chosenCollageRows);
+		int imgCount = 1;
 		
-		for (int i = 0; i < chosenCollageRows * chosenCollageRows; i++){
+		for (int i = 0; i < liste.length; i++){
 			System.out.println("inserting image: " + liste[i].getName());
 			System.out.println("at: " + x + " / " + y);
 			Mat tmp1 = Imgcodecs.imread(liste[i].getAbsolutePath());
-			Imgproc.resize(tmp1, tmp1, new Size(partWidth, partHeight));
+			// rotate image?
+			if (tmp1.rows() > tmp1.cols()) {
+				tmp1 = rotate90(tmp1);
+			}
+			// resize
+			System.out.println("before:" + tmp1.rows() + " / " + tmp1.cols());
+			float format = tmp1.rows() / tmp1.cols();
+			System.out.println("format: " + format);
+			if (format < chosenFormat) {
+				System.out.println("is smaller");
+				float newWidth = tmp1.cols() * ((float) partHeight / tmp1.rows());
+				Imgproc.resize(tmp1, tmp1, new Size(newWidth, partHeight));
+			} else {
+				System.out.println("is bigger");
+				float newHeight = tmp1.rows() * ((float) partWidth / tmp1.cols());
+				Imgproc.resize(tmp1, tmp1, new Size(partWidth, newHeight));
+			}
+			System.out.println("size as:" + partWidth + " / " + partHeight);
+			System.out.println("size is:" + tmp1.size().width + " / " + tmp1.size().height);
+			
+			// copy
 			Mat destinationROI = new Mat(result, new Rect (new Point(x, y), tmp1.size()));
 			tmp1.copyTo(destinationROI);
 			x += partWidth;
@@ -126,12 +148,16 @@ public class ImageCollage extends JFrame{
 			}
 			if (y >= resultHeight) {
 				// save image
-				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage.jpg", result);
-				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage.jpg");
+				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage" + imgCount + ".jpg", result);
+				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage" + imgCount + ".jpg");
+				result = new Mat((int) resultHeight, (int) resultWidth, CvType.CV_8UC3, new Scalar(0, 0, 0));
+				x = 0;
+				y = 0;
+				imgCount++;
 			}
 		}
 		showImage(mat2Img(result));
-//		this.dispose();
+		this.dispose();
 	}
 	
 	private void showImage(BufferedImage img) {
@@ -154,6 +180,12 @@ public class ImageCollage extends JFrame{
 		}
 		return img;
     }
+	
+	public static Mat rotate90(Mat m) {
+		Core.transpose(m, m);
+		Core.flip(m, m, 1);
+		return m;
+	}
 
 	public static void main(String[] args){
 		new ImageCollage();
