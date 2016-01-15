@@ -30,18 +30,18 @@ import org.opencv.imgproc.Imgproc;
 
 public class ImageCollage extends JFrame{
 		
-	private static int[] HEIGHTS = {9, 10, 11, 13, 15};
+	private static float[] HEIGHTS = {9, 10, 11, 13, 15};
 	private static float INCH = 2.54f;
-	private static int RESOLUTION = 250; //ppi
+	private static float RESOLUTION = 250; //ppi
 	private static int[] COLLAGE_ROWS = {2, 3, 4};
-	private static float FORMAT_WIDTH = 16;
-	private static float FORMAT_HEIGHT = 9;
+	private static float FORMAT_WIDTH = 4;
+	private static float FORMAT_HEIGHT = 3;
 	// resulting format 16 to 9
 	
 	// width in px = 13 / 2,54 * 250
 	
-	private int chosenHeight = 13;
-	private int chosenCollageRows = 3;
+	private float chosenHeight = 15;
+	private int chosenCollageRows = 2;
 	private float chosenFormat = FORMAT_WIDTH / FORMAT_HEIGHT;
 	
 	private JLabel label;
@@ -152,7 +152,7 @@ public class ImageCollage extends JFrame{
 			}
 			if (y >= resultHeight || i == liste.length - 1) {
 				// save image
-				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage" + imgCount + ".jpg", result);
+				Imgcodecs.imwrite(dir.getAbsolutePath() + "/" + (int) FORMAT_WIDTH + "-" + (int) FORMAT_HEIGHT + "collage" + imgCount + ".jpg", result);
 				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage" + imgCount + ".jpg");
 				result = new Mat((int) resultHeight, (int) resultWidth, CvType.CV_8UC3, new Scalar(0, 0, 0));
 				x = 0;
