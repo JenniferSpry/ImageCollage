@@ -124,14 +124,18 @@ public class ImageCollage extends JFrame{
 			}
 			// resize
 			System.out.println("before:" + tmp1.rows() + " / " + tmp1.cols());
-			float format = tmp1.rows() / tmp1.cols();
+			float format = (float) tmp1.cols() / (float) tmp1.rows();
+			System.out.println("format chosen: " + chosenFormat);
 			System.out.println("format: " + format);
-			if (format < chosenFormat) {
+			if (format == chosenFormat) {
+				System.out.println("SAME");
+				Imgproc.resize(tmp1, tmp1, new Size(partWidth, partHeight));
+			} else if (format < chosenFormat) {
 				System.out.println("is smaller");
 				float newWidth = tmp1.cols() * ((float) partHeight / tmp1.rows());
 				Imgproc.resize(tmp1, tmp1, new Size(newWidth, partHeight));
 			} else {
-				System.out.println("is bigger");
+				System.out.println("is larger");
 				float newHeight = tmp1.rows() * ((float) partWidth / tmp1.cols());
 				Imgproc.resize(tmp1, tmp1, new Size(partWidth, newHeight));
 			}
@@ -146,7 +150,7 @@ public class ImageCollage extends JFrame{
 				x = 0;
 				y += partHeight;
 			}
-			if (y >= resultHeight) {
+			if (y >= resultHeight || i == liste.length - 1) {
 				// save image
 				Imgcodecs.imwrite(dir.getAbsolutePath() + "/collage" + imgCount + ".jpg", result);
 				System.out.println("saved image to: " + dir.getAbsolutePath() + "\\collage" + imgCount + ".jpg");
