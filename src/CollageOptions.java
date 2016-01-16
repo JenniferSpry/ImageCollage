@@ -4,6 +4,7 @@ public class CollageOptions {
 	public static final float[] HEIGHTS = {9, 10, 11, 13, 15};
 	public static final int[] COLLAGE_ROWS = {2, 3, 4};
 	public static final float[][] FORMATS = {{4,3}, {16,9}};
+	public static final String[] FORMATS_AS_TEXT = {"4 x 3", "16 x 9"};
 	
 	private float resolution = 250; //ppi
 	private float chosenHeight = 10;
@@ -63,9 +64,9 @@ public class CollageOptions {
 		calculateSizes();
 	}
 	
-	public void setFormat(float[] format) {
-		chosenFormat = format;
-		this.format = format[0] / format[1];
+	public void setFormat(int index) {
+		chosenFormat = FORMATS[index];
+		this.format = chosenFormat[0] / chosenFormat[1];
 		calculateSizes();
 	}
 	
