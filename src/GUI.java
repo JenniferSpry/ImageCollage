@@ -16,6 +16,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -108,7 +109,7 @@ public class GUI extends JFrame{
 		// JButton createCollageButton = new JButton("create collages");
 		
 		// image
-		//imageLabel = new JLabel();
+		imageLabel = new JLabel();
 		
 		// put it all together
 		JPanel containerTop = new JPanel();
@@ -148,18 +149,28 @@ public class GUI extends JFrame{
 			File dir = fileChooser.getSelectedFile();
 			File saveDir = new File(dir.getAbsoluteFile() + collageOptions.getDirectoryName());
 			saveDir.mkdir();
-			try {
-				imageCreator.createCollages(dir, collageOptions);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			GUI gui = this;
+			Thread queryThread = new Thread() {
+			    public void run() {
+			    	try {
+						imageCreator.createCollages(dir, collageOptions, gui);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			    }
+			};
+			queryThread.start();
 		}
 	}
 	
-//	private void showImage(BufferedImage img) {
-//		imageLabel.setIcon(new ImageIcon(img.getScaledInstance(500, 500, 0)));
-//		pack();
-//		imageLabel.repaint();
-//	}
+	public void showImage(BufferedImage img) {
+		SwingUtilities.invokeLater(new Runnable() {
+		    public void run() {
+		    	imageLabel.setIcon(new ImageIcon(img.getScaledInstance(500, 500, 0)));
+				pack();
+				imageLabel.repaint();
+		    }
+		  });
+	}
 }

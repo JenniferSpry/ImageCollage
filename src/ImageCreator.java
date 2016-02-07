@@ -20,7 +20,7 @@ import org.opencv.imgproc.Imgproc;
 
 public class ImageCreator {
 	
-	void createCollages(File dir, CollageOptions collageOptions) throws IOException {
+	void createCollages(File dir, CollageOptions collageOptions, GUI gui) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
 		Mat result = new Mat(collageOptions.getResultHeight(), collageOptions.getResultWidth(), CvType.CV_8UC3, new Scalar(0, 0, 0));
@@ -70,8 +70,7 @@ public class ImageCreator {
 				}
 			}
 		}
-//		showImage(mat2Img(result));
-//		this.dispose();
+		gui.showImage(mat2Img(result));
 	}
 	
 	public static BufferedImage mat2Img(Mat inmat){
