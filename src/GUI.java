@@ -16,6 +16,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 
 public class GUI extends JFrame{
@@ -66,10 +68,25 @@ public class GUI extends JFrame{
 		
 		// resolution
 		JLabel resolutionLabel = new JLabel("Resolution");
-		JTextField resultuionTextField = new JTextField(collageOptions.getResolution() + "", 6);
-		resultuionTextField.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent e){
-		        collageOptions.setResolution(Integer.parseInt(((JTextField)e.getSource()).getText()));
+		JTextField resultuionTextField = new JTextField(String.valueOf(collageOptions.getResolution()), 6);
+		resultuionTextField.getDocument().addDocumentListener(new DocumentListener(){
+			@Override
+			public void changedUpdate(DocumentEvent arg0) {
+				updateResolution();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent arg0) {
+				updateResolution();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent arg0) {
+				updateResolution();
+			}
+			
+			public void updateResolution() {
+				collageOptions.setResolution(Integer.parseInt(resultuionTextField.getText()));
 			}
 		});
 		JLabel resolutionDPILabel = new JLabel("dpi");
@@ -109,8 +126,7 @@ public class GUI extends JFrame{
 		controlsPanel.add(resultuionTextField);
 		controlsPanel.add(resolutionDPILabel);
 		controlsPanel.add(fileChooserLabel);
-		controlsPanel.add(fileChooserButton);
-		
+		controlsPanel.add(fileChooserButton);		
 		
 		JPanel containerBottom = new JPanel();
 		add(containerBottom, BorderLayout.CENTER);	

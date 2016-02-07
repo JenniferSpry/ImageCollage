@@ -29,7 +29,7 @@ public class CollageOptions {
 	}
 	
 	// Getter
-	public float getResolution() {
+	public int getResolution() {
 		return resolution;
 	}
 	public float getChosenHeight() {
